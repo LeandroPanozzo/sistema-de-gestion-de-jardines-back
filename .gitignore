@@ -1,0 +1,31 @@
+# Entorno virtual
+venv/
+*.pyc
+__pycache__/
+
+# Archivos de configuración
+.env
+
+# Base de datos SQLite
+*.sqlite3
+
+# Archivos de VSCode
+.vscode/
+
+# Archivos de caché
+*.log
+*.pot
+*.py[cod]
+*$py.class
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Migrations (opcional ignorar si no las versionás)
+# **Si usás git para migraciones, NO lo incluyas**
+# **/migrations/
+
+# Archivos de SQLite Viewer plugin
+*.sqlite-wal
+*.sqlite-shm
