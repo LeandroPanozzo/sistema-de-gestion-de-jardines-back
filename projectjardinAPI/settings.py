@@ -70,10 +70,18 @@ WSGI_APPLICATION = 'projectjardinAPI.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mi_basededatos',
+        'USER': 'neondb_owner',
+        'PASSWORD': 'npg_WyzH49UTSLFN',
+        'HOST': 'ep-delicate-wind-a8ya0vtz-pooler.eastus2.azure.neon.tech',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require'
+        }
     }
 }
+
 
 
 # Password validation
