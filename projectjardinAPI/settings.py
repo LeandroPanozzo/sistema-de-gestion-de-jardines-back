@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-hzn)_3+hlig)m8d@r@0-ahx85kn!pliy-*rp73e87dc#ezxdg(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['sistema-de-gestion-de-jardines-back.onrender.com']
+ALLOWED_HOSTS = ['sistema-de-gestion-de-jardines-back.onrender.com', 'jardingestion.netlify.app']
 
 
 
