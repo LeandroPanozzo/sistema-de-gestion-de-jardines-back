@@ -1,0 +1,32 @@
+name: Recordatorios de Pago
+
+on:
+  schedule:
+    # Ejecutar el día 1 de cada mes a las 9:00 AM UTC
+    - cron: '0 9 1 * *'
+    # Ejecutar el día 10 de cada mes a las 9:00 AM UTC  
+    - cron: '0 9 10 * *'
+  workflow_dispatch: # Permite ejecución manual
+
+jobs:
+  enviar-recordatorios:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Trigger reminders
+      run: |
+        current_day=$(date +%d)
+        
+        if [ "$current_day" -eq "01" ]; then
+          echo "Enviando recordatorios de inicio de mes..."
+          curl -X POST "${{ secrets.BACKEND_URL }}/api/recordatorios/ejecutar/" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Token ${{ secrets.API_TOKEN }}" \
+            -d '{"tipo": "inicio_mes"}'
+        elif [ "$current_day" -eq "10" ]; then
+          echo "Enviando recordatorios de vencimiento..."
+          curl -X POST "${{ secrets.BACKEND_URL }}/api/recordatorios/ejecutar/" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Token ${{ secrets.API_TOKEN }}" \
+            -d '{"tipo": "vencimiento"}'
+        fi

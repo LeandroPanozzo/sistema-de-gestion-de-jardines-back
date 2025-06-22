@@ -28,6 +28,7 @@ urlpatterns = [
     path('auth/forgot-username/', views.forgot_username, name='forgot_username'),
     path('auth/reset-password/', views.reset_password, name='reset_password'),
     path('auth/verify-reset-token/', views.verify_reset_token, name='verify_reset_token'),
+    path('api/recordatorios/ejecutar/', views.ejecutar_recordatorios, name='ejecutar_recordatorios'),
     # Incluir todas las rutas del router
     path('', include(router.urls)),
 ]

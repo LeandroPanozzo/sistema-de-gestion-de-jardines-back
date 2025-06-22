@@ -8,6 +8,13 @@ from django.db.models import Q
 from datetime import date
 from django.shortcuts import get_object_or_404
 import secrets
+from django.core.management import call_command
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from io import StringIO
+import sys
 import string
 from datetime import timedelta
 from django.utils import timezone
@@ -1940,3 +1947,50 @@ def verify_reset_token(request):
             'valid': False,
             'error': 'Token inválido'
         })
+    
+@permission_classes([IsDirectivo])
+def ejecutar_recordatorios(request):
+    """
+    Endpoint para ejecutar recordatorios manualmente
+    """
+    tipo_recordatorio = request.data.get('tipo', 'inicio_mes')
+    fecha_especifica = request.data.get('fecha', None)
+    
+    if tipo_recordatorio not in ['inicio_mes', 'vencimiento']:
+        return Response(
+            {'error': 'Tipo de recordatorio inválido. Use: inicio_mes o vencimiento'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Capturar la salida del comando
+        old_stdout = sys.stdout
+        sys.stdout = captured_output = StringIO()
+        
+        # Ejecutar el comando
+        if fecha_especifica:
+            call_command('enviar_recordatorios', '--tipo', tipo_recordatorio, '--fecha', fecha_especifica)
+        else:
+            call_command('enviar_recordatorios', '--tipo', tipo_recordatorio)
+        
+        # Restaurar stdout
+        sys.stdout = old_stdout
+        output = captured_output.getvalue()
+        
+        return Response({
+            'success': True,
+            'message': 'Recordatorios ejecutados exitosamente',
+            'output': output,
+            'tipo': tipo_recordatorio,
+            'fecha': fecha_especifica
+        })
+        
+    except Exception as e:
+        sys.stdout = old_stdout
+        return Response(
+            {
+                'success': False,
+                'error': f'Error al ejecutar recordatorios: {str(e)}'
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
