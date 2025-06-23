@@ -391,6 +391,7 @@ class Alumno(models.Model):
     apellido = models.CharField(max_length=100)
     dni = models.CharField(max_length=10, unique=True)
     fecha_nacimiento = models.DateField()
+    observaciones = models.TextField(blank=True, help_text="Observaciones sobre el alumno")
     
     # Relación con el curso
     curso = models.ForeignKey(
@@ -410,7 +411,6 @@ class Alumno(models.Model):
         return today.year - self.fecha_nacimiento.year - (
             (today.month, today.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day)
         )
-
 
 class Familiar(models.Model):
     """Familiares autorizados a retirar alumnos"""

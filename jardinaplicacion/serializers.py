@@ -266,7 +266,7 @@ class AlumnoSerializer(serializers.ModelSerializer):
         model = Alumno
         fields = [
             'id', 'nombre', 'apellido', 'dni', 'fecha_nacimiento',
-            'curso', 'curso_nombre', 'edad', 'familiares'
+            'curso', 'curso_nombre', 'edad', 'familiares', 'observaciones'
         ]
     
     def get_curso_nombre(self, obj):
@@ -284,7 +284,6 @@ class AlumnoSerializer(serializers.ModelSerializer):
                 return data
             raise serializers.ValidationError('No hay cupos disponibles en este curso')
         return data
-
 
 class FamiliarSerializer(serializers.ModelSerializer):
     alumno_nombre = serializers.SerializerMethodField()

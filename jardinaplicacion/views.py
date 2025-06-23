@@ -34,7 +34,7 @@ from .models import (
 )
 from .serializers import (
     CustomUserSerializer, LoginSerializer, CicloLectivoSerializer,
-    CursoSerializer, AlumnoSerializer, FamiliarSerializer,
+    CursoSerializer, AlumnoSerializer, FamiliarSerializer, ProcesamientoVencimientosSerializer, ProcesarAusenciasMasivasSerializer,
     RegistroAsistenciaMaestroSerializer, RegistroRetiroAlumnoSerializer,
     CuotaCursoSerializer, PagoCuotaSerializer, MaestroAsignacionSerializer,
     RegistrarIngresoSerializer, RegistrarSalidaSerializer, HabilitarUsuarioSerializer,
@@ -419,7 +419,7 @@ class CursoViewSet(viewsets.ModelViewSet):
 class AlumnoViewSet(viewsets.ModelViewSet):
     serializer_class = AlumnoSerializer
     permission_classes = [IsMaestroOrDirectivo]
-    queryset = Alumno.objects.all()  # Add this line
+    queryset = Alumno.objects.all()
 
     def get_queryset(self):
         """Filtrar alumnos según el rol del usuario con prefetch de familiares"""
@@ -432,17 +432,52 @@ class AlumnoViewSet(viewsets.ModelViewSet):
             return base_queryset.filter(curso__maestros=self.request.user)
         return base_queryset.none()
     
+    def update(self, request, *args, **kwargs):
+        """Override update method to ensure proper permissions"""
+        instance = self.get_object()
+        
+        # Verificar permisos específicos para la actualización
+        if request.user.es_maestro:
+            # Los maestros solo pueden actualizar alumnos de sus cursos
+            if not instance.curso or not instance.curso.maestros.filter(id=request.user.id).exists():
+                return Response(
+                    {"detail": "No tienes permisos para actualizar este alumno."}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        elif not request.user.es_directivo:
+            return Response(
+                {"detail": "No tienes permisos para actualizar alumnos."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Proceder con la actualización normal
+        partial = kwargs.pop('partial', False)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+        
+        return Response(serializer.data)
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Override partial_update method"""
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+    
     @action(detail=False, methods=['get'], permission_classes=[IsMaestro])
     def mis_alumnos(self, request):
         """Obtener alumnos de los cursos del maestro actual con sus familiares"""
         alumnos = Alumno.objects.filter(
             curso__maestros=request.user
-        ).prefetch_related('familiares')  # Importante: usar prefetch_related
+        ).prefetch_related('familiares')
         
         serializer = self.get_serializer(alumnos, many=True)
         return Response(serializer.data)
-
-
+    
 class FamiliarViewSet(viewsets.ModelViewSet):
     queryset = Familiar.objects.all()
     serializer_class = FamiliarSerializer
